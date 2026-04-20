@@ -3,12 +3,12 @@ import google.generativeai as genai
 import base64
 from PIL import Image
 import io
-import json
+import os
 
-# ─── CẤU HÌNH ───────────────────────────────────────────────────────────────
+# ─── CẤU HÌNH ────────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="Tool Tạo Video Nhân Hóa 3D",
-    page_icon="🎬",
+    page_title="Tool Tạo Video Nhân Hóa 3D - Mỹ Phẩm",
+    page_icon="💄",
     layout="wide"
 )
 
@@ -19,71 +19,71 @@ if GEMINI_API_KEY:
 # ─── CSS ─────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-    .main { background: #f8f9fa; }
-    .block-container { padding: 1.5rem 2rem; }
-    h1 { font-size: 1.6rem !important; font-weight: 700 !important; }
+    .main { background: #f0f2f6; }
+    .block-container { padding: 1rem 1.5rem; }
+
+    .header-box {
+        display: flex; align-items: center; gap: 14px;
+        background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+        border-radius: 14px; padding: 14px 20px; margin-bottom: 1rem;
+    }
+    .header-box img { height: 48px; border-radius: 8px; }
+    .header-title { color: white; font-size: 1.4rem; font-weight: 800; line-height: 1.2; }
+    .header-sub { color: #a78bfa; font-size: 0.85rem; }
+
+    .greeting {
+        background: linear-gradient(90deg, #667eea22, #764ba222);
+        border-left: 4px solid #667eea;
+        border-radius: 8px; padding: 8px 14px;
+        font-size: 0.9rem; color: #4c1d95; margin-bottom: 1rem;
+    }
+
     .section-card {
-        background: white;
-        border-radius: 12px;
-        padding: 1.2rem 1.4rem;
-        margin-bottom: 1rem;
-        border: 1px solid #e9ecef;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        background: white; border-radius: 12px;
+        padding: 1.1rem 1.3rem; margin-bottom: 0.9rem;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
     .section-title {
-        font-weight: 700;
-        font-size: 1rem;
-        margin-bottom: 0.8rem;
-        display: flex;
-        align-items: center;
-        gap: 6px;
+        font-weight: 700; font-size: 0.95rem;
+        color: #1e293b; margin-bottom: 0.7rem;
+        display: flex; align-items: center; gap: 6px;
+        border-bottom: 2px solid #f1f5f9; padding-bottom: 6px;
     }
     .result-box {
-        background: white;
-        border-radius: 12px;
-        padding: 1.4rem;
-        min-height: 400px;
-        border: 1px solid #e9ecef;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        background: white; border-radius: 12px;
+        padding: 1.4rem; min-height: 500px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
+
     .stButton > button {
-        border-radius: 8px;
-        font-weight: 600;
-        transition: all 0.2s;
-    }
-    .btn-main > button {
-        background: linear-gradient(135deg, #667eea, #764ba2) !important;
-        color: white !important;
+        border-radius: 8px !important; font-weight: 600 !important;
+        font-size: 0.85rem !important; transition: all 0.2s !important;
         border: none !important;
-        width: 100%;
-        padding: 0.6rem !important;
     }
-    .btn-green > button {
-        background: #28a745 !important;
-        color: white !important;
-        border: none !important;
-        width: 100%;
+    .btn-veo button    { background: #059669 !important; color: white !important; }
+    .btn-pink button   { background: linear-gradient(135deg,#ec4899,#be185d) !important; color: white !important; }
+    .btn-blue button   { background: linear-gradient(135deg,#3b82f6,#1d4ed8) !important; color: white !important; }
+    .btn-orange button { background: linear-gradient(135deg,#f97316,#c2410c) !important; color: white !important; }
+    .btn-red button    { background: linear-gradient(135deg,#ef4444,#b91c1c) !important; color: white !important; width:100% !important; font-size:1rem !important; }
+    .btn-download button { background: #0891b2 !important; color: white !important; }
+    .btn-clear button    { background: #64748b !important; color: white !important; }
+    .btn-caption button  { background: linear-gradient(135deg,#8b5cf6,#6d28d9) !important; color: white !important; }
+    .btn-script button   { background: linear-gradient(135deg,#06b6d4,#0891b2) !important; color: white !important; }
+    .btn-analyze button  { background: linear-gradient(135deg,#10b981,#059669) !important; color: white !important; }
+    .btn-prompt3d button { background: linear-gradient(135deg,#f59e0b,#d97706) !important; color: white !important; }
+
+    .result-empty { text-align: center; color: #94a3b8; margin-top: 100px; }
+    .result-empty .icon { font-size: 3rem; }
+    .chude-popup {
+        background: #f8fafc; border-radius: 10px;
+        border: 1px solid #e2e8f0; padding: 1rem; margin: 0.5rem 0;
     }
-    .tag-pill {
-        display: inline-block;
-        background: #f0f0f0;
-        border-radius: 20px;
-        padding: 2px 10px;
-        font-size: 0.78rem;
-        margin: 2px;
-        cursor: pointer;
-        border: 1px solid #ddd;
-    }
-    .result-empty {
-        text-align: center;
-        color: #adb5bd;
-        margin-top: 80px;
-    }
-    .result-empty .icon { font-size: 2.5rem; }
 </style>
 """, unsafe_allow_html=True)
 
-# ─── DỮ LIỆU CHỦ ĐỀ MẪU ────────────────────────────────────────────────────
+# ─── DỮ LIỆU CHỦ ĐỀ MẪU ─────────────────────────────────────────────────────
 CHU_DE_MAU = {
     "💄 Mỹ phẩm & Làm đẹp": [
         "Serum Vitamin C có tác dụng gì cho da",
@@ -98,7 +98,6 @@ CHU_DE_MAU = {
         "Collagen uống hay bôi hiệu quả hơn",
     ],
     "✨ Nhân hóa 3D & Xu hướng": [
-        "Cây cỏ nổi giận khi bị hái lá",
         "Viên serum tự kể chuyện hành trình lên da",
         "Mascara khóc vì bị dùng không đúng cách",
         "Son môi ghen tị với son bạn gái khác",
@@ -108,6 +107,7 @@ CHU_DE_MAU = {
         "Chai nước hoa cuối cùng trong lọ",
         "Miếng mặt nạ kể chuyện 20 phút trên mặt",
         "Cây son tự nhận xét về màu của mình",
+        "Hũ kem dưỡng tâm sự chuyện hết hạn sử dụng",
     ],
     "🌿 Nguyên liệu thiên nhiên": [
         "Nghệ có thực sự trị mụn không",
@@ -144,10 +144,7 @@ def call_gemini(prompt, image=None):
         model = genai.GenerativeModel("gemini-1.5-flash")
         if image:
             b64 = image_to_base64(image)
-            response = model.generate_content([
-                {"mime_type": "image/png", "data": b64},
-                prompt
-            ])
+            response = model.generate_content([{"mime_type": "image/png", "data": b64}, prompt])
         else:
             response = model.generate_content(prompt)
         return response.text
@@ -155,58 +152,75 @@ def call_gemini(prompt, image=None):
         return f"❌ Lỗi Gemini: {str(e)}"
 
 # ─── SESSION STATE ────────────────────────────────────────────────────────────
-if "result" not in st.session_state:
-    st.session_state.result = None
-if "chu_de" not in st.session_state:
-    st.session_state.chu_de = ""
-if "show_chu_de" not in st.session_state:
-    st.session_state.show_chu_de = False
+for key, val in {
+    "result": None, "chu_de": "", "show_chu_de": False,
+    "nhan_vat_ai": "", "boi_canh_ai": ""
+}.items():
+    if key not in st.session_state:
+        st.session_state[key] = val
 
 # ─── HEADER ──────────────────────────────────────────────────────────────────
-st.markdown("## 🎬 Tool Tạo Video Nhân Hóa 3D")
+logo_path = "logo.png"
+if os.path.exists(logo_path):
+    with open(logo_path, "rb") as f:
+        logo_b64 = base64.b64encode(f.read()).decode()
+    logo_html = f'<img src="data:image/png;base64,{logo_b64}" />'
+else:
+    logo_html = '<div style="font-size:2.5rem">💄</div>'
+
+st.markdown(f"""
+<div class="header-box">
+    {logo_html}
+    <div>
+        <div class="header-title">🎬 Tool Tạo Video Nhân Hóa 3D — Mỹ Phẩm</div>
+        <div class="header-sub">✨ Tạo prompt video viral tự động với AI</div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
 st.markdown(
-    '<div style="background:#e8f4fd;padding:8px 14px;border-radius:8px;'
-    'font-size:0.9rem;color:#1a73e8;margin-bottom:1rem">'
-    '💬 Chào Sếp, em là <b>Nhi</b> - Trợ Lý A.I Của Anh Lập Trình</div>',
+    '<div class="greeting">💬 Chào Sếp, em là <b>Nhi</b> - Trợ Lý A.I Của Anh Lập Trình 🤖</div>',
     unsafe_allow_html=True
 )
 
-# ─── LAYOUT CHÍNH ─────────────────────────────────────────────────────────────
+# ─── LAYOUT ──────────────────────────────────────────────────────────────────
 col_left, col_right = st.columns([1, 1.1], gap="medium")
 
 with col_left:
+
     # Công cụ phụ
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown('<div class="section-title">🔧 Công cụ tạo Video</div>', unsafe_allow_html=True)
-    st.markdown('<div class="btn-green">', unsafe_allow_html=True)
-    st.button("↗️ Tải Veo 3", use_container_width=True)
+    st.markdown('<div class="btn-veo">', unsafe_allow_html=True)
+    st.button("↗️ Mở Veo 3", use_container_width=True, key="btn_veo3")
     st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # Cấu hình video
+    # Cấu hình
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown('<div class="section-title">⚙️ Cấu hình Video</div>', unsafe_allow_html=True)
 
     tab1, tab2 = st.tabs(["📝 Từ Chủ Đề", "🎥 Phân tích Video"])
 
-    # ── TAB 1: TỪ CHỦ ĐỀ ────────────────────────────────────────────────
     with tab1:
-        c1, c2 = st.columns([2, 1])
+        c1, c2 = st.columns([3, 2])
         with c1:
             st.markdown("**Chủ đề Video** *(bắt buộc)*")
         with c2:
-            if st.button("📋 Chọn chủ đề mẫu", key="btn_open_chude"):
+            st.markdown('<div class="btn-pink">', unsafe_allow_html=True)
+            if st.button("📋 Chọn chủ đề mẫu", key="btn_open_chude", use_container_width=True):
                 st.session_state.show_chu_de = not st.session_state.show_chu_de
+            st.markdown('</div>', unsafe_allow_html=True)
 
         chu_de = st.text_input(
             "", placeholder="Ví dụ: Son môi ghen tị với son bạn gái khác...",
-            value=st.session_state.chu_de, key="input_chu_de", label_visibility="collapsed"
+            value=st.session_state.chu_de, key="input_chu_de",
+            label_visibility="collapsed"
         )
 
-        # Popup chọn chủ đề
         if st.session_state.show_chu_de:
-            st.markdown("---")
-            st.markdown("**📚 Danh sách Chủ đề mẫu**")
+            st.markdown('<div class="chude-popup">', unsafe_allow_html=True)
+            st.markdown("**📚 Bấm để chọn chủ đề:**")
             for danh_muc, ds in CHU_DE_MAU.items():
                 st.markdown(f"**{danh_muc}**")
                 cols = st.columns(2)
@@ -216,172 +230,188 @@ with col_left:
                             st.session_state.chu_de = cd
                             st.session_state.show_chu_de = False
                             st.rerun()
-            st.markdown("---")
+            st.markdown('</div>', unsafe_allow_html=True)
 
         c3, c4 = st.columns(2)
         with c3:
             phong_cach = st.selectbox("Phong cách (Voice)", [
-                "Châm biếm", "Hài hước", "Cảm xúc", "Kịch tính", "Cute dễ thương", "Nghiêm túc"
-            ])
+                "Châm biếm","Hài hước","Cảm xúc","Kịch tính","Cute dễ thương","Nghiêm túc"])
         with c4:
-            so_luong = st.number_input("Số lượng", min_value=1, max_value=20, value=5)
+            so_luong = st.number_input("Số lượng", 1, 20, 5)
 
         c5, c6 = st.columns(2)
         with c5:
-            ty_le = st.selectbox("Tỉ lệ khung hình", ["9:16", "16:9", "1:1"])
+            ty_le = st.selectbox("Tỉ lệ khung hình", ["9:16","16:9","1:1"])
         with c6:
             st.text_input("Độ dài (cố định)", value="8 Giây", disabled=True)
 
-        nhan_vat = st.text_input(
-            "Nhân vật/Đồ vật cụ thể *(Không bắt buộc)*",
-            placeholder="Ví dụ: Cây son MAC, Chai serum La Mer..."
-        )
-        if st.button("🤖 Gợi ý nhân vật", use_container_width=True):
-            if chu_de:
-                with st.spinner("Đang gợi ý..."):
-                    res = call_gemini(f"Gợi ý 5 nhân vật/đồ vật phù hợp cho video nhân hóa 3D về chủ đề: '{chu_de}'. Trả lời ngắn gọn dạng danh sách.")
-                    st.info(res)
+        # Nhân vật
+        st.markdown("**Nhân vật/Đồ vật** *(Không bắt buộc)*")
+        nv1, nv2 = st.columns([3, 2])
+        with nv1:
+            nhan_vat = st.text_input("", key="input_nhan_vat",
+                placeholder="Ví dụ: Son MAC, Serum La Mer...",
+                value=st.session_state.nhan_vat_ai, label_visibility="collapsed")
+        with nv2:
+            st.markdown('<div class="btn-blue">', unsafe_allow_html=True)
+            if st.button("🤖 AI gợi ý nhân vật", use_container_width=True, key="btn_nhanvat"):
+                topic = st.session_state.chu_de or chu_de
+                if topic:
+                    with st.spinner("AI đang gợi ý..."):
+                        res = call_gemini(
+                            f"Gợi ý 5 nhân vật/đồ vật mỹ phẩm để nhân hóa 3D cho video về: '{topic}'. "
+                            "Dạng danh sách ngắn, mỗi dòng 1 nhân vật.")
+                        st.session_state.nhan_vat_ai = res
+                        st.session_state.result = res
+                else:
+                    st.warning("Nhập chủ đề trước nhé anh!")
+            st.markdown('</div>', unsafe_allow_html=True)
 
         c7, c8 = st.columns(2)
         with c7:
-            giong_doc = st.selectbox("Giọng đọc", ["Nam trẻ", "Nữ trẻ", "Nữ dịu dàng", "Nam trầm"])
+            giong_doc = st.selectbox("Giọng đọc", ["Nam trẻ","Nữ trẻ","Nữ dịu dàng","Nam trầm"])
         with c8:
-            ngon_ngu = st.selectbox("Ngôn ngữ Voice", ["Tiếng Việt", "English"])
+            ngon_ngu = st.selectbox("Ngôn ngữ Voice", ["Tiếng Việt","English"])
 
         hai_huoc = st.slider("Mức độ hài hước", 1, 5, 3)
 
-        boi_canh = st.text_input(
-            "Bối cảnh ưu tiên *(Không bắt buộc)*",
-            placeholder="Ví dụ: Bàn trang điểm, Studio ánh sáng neon..."
-        )
-        if st.button("✨ Gợi ý Bối cảnh AI", use_container_width=True):
-            if chu_de:
-                with st.spinner("Đang gợi ý..."):
-                    res = call_gemini(f"Gợi ý 5 bối cảnh 3D đẹp cho video nhân hóa về: '{chu_de}'. Ngắn gọn, sáng tạo.")
-                    st.info(res)
+        # Bối cảnh
+        st.markdown("**Bối cảnh ưu tiên** *(Không bắt buộc)*")
+        bc1, bc2 = st.columns([3, 2])
+        with bc1:
+            boi_canh = st.text_input("", key="input_boi_canh",
+                placeholder="Ví dụ: Bàn trang điểm, Studio neon...",
+                value=st.session_state.boi_canh_ai, label_visibility="collapsed")
+        with bc2:
+            st.markdown('<div class="btn-orange">', unsafe_allow_html=True)
+            if st.button("✨ AI đọc kịch bản", use_container_width=True, key="btn_boicanh"):
+                topic = st.session_state.chu_de or chu_de
+                nv = nhan_vat or "sản phẩm mỹ phẩm"
+                if topic:
+                    with st.spinner("AI đang phân tích kịch bản..."):
+                        res = call_gemini(
+                            f"Dựa vào kịch bản video nhân hóa 3D về '{topic}' với nhân vật '{nv}', "
+                            "gợi ý 3 bối cảnh 3D phù hợp nhất (Pixar/Disney style). "
+                            "Mỗi bối cảnh 1 dòng, ngắn gọn, phù hợp mỹ phẩm.")
+                        st.session_state.boi_canh_ai = res
+                        st.session_state.result = res
+                else:
+                    st.warning("Nhập chủ đề trước nhé anh!")
+            st.markdown('</div>', unsafe_allow_html=True)
 
         noi_dung_cam = st.text_input("Nội dung cấm (Negative)", value="không nói tục")
 
-        st.markdown('<div class="btn-main">', unsafe_allow_html=True)
+        st.markdown('<div class="btn-red">', unsafe_allow_html=True)
         btn_tao = st.button("🚀 Tạo Prompt Ngay", key="btn_tao_prompt", use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
         if btn_tao:
-            if not chu_de and not st.session_state.chu_de:
+            topic = st.session_state.chu_de or chu_de
+            if not topic:
                 st.warning("⚠️ Anh chưa nhập chủ đề!")
             else:
-                topic = st.session_state.chu_de or chu_de
-                with st.spinner("Đang tạo prompt..."):
-                    prompt = f"""Tạo {so_luong} prompt video nhân hóa 3D chuyên nghiệp cho Veo 3 với các thông tin:
+                with st.spinner("⚡ Đang tạo prompt..."):
+                    prompt = f"""Tạo {so_luong} prompt video nhân hóa 3D mỹ phẩm chuyên nghiệp cho Veo 3:
 - Chủ đề: {topic}
 - Nhân vật: {nhan_vat or 'tự chọn phù hợp'}
 - Phong cách: {phong_cach}
-- Bối cảnh: {boi_canh or 'tự chọn'}
-- Tỉ lệ: {ty_le}
+- Bối cảnh: {boi_canh or st.session_state.boi_canh_ai or 'tự chọn'}
+- Tỉ lệ: {ty_le}, Độ dài: 8 giây
 - Mức hài hước: {hai_huoc}/5
 - Không được: {noi_dung_cam}
 - Ngôn ngữ voice: {ngon_ngu}
 
 Mỗi prompt gồm:
 1. [SCENE] Mô tả cảnh quay chi tiết
-2. [CHARACTER] Nhân vật/đồ vật được nhân hóa như thế nào
-3. [VOICE] Script lời thoại ngắn (~15 giây)
-4. [STYLE] Phong cách hình ảnh 3D
+2. [CHARACTER] Nhân vật mỹ phẩm được nhân hóa
+3. [VOICE] Script lời thoại ~15 giây
+4. [STYLE] Phong cách 3D Pixar/Disney
 5. [CAMERA] Góc máy và chuyển động
 
-Trả lời bằng tiếng Việt, sáng tạo và hấp dẫn."""
-                    result = call_gemini(prompt)
-                    st.session_state.result = result
+Trả lời tiếng Việt, sáng tạo và viral."""
+                    st.session_state.result = call_gemini(prompt)
 
-    # ── TAB 2: PHÂN TÍCH VIDEO ───────────────────────────────────────────
     with tab2:
-        st.markdown("**Upload Video Mẫu** *")
-        video_file = st.file_uploader(
-            "", type=["mp4", "mov"],
-            label_visibility="collapsed", key="video_upload"
-        )
-        st.caption("*AI sẽ giữ nguyên hình ảnh từ video nhưng tạo Voice/Script mới*")
+        st.markdown("**Upload Video Mẫu** *(MP4, MOV - Max 50MB)*")
+        video_file = st.file_uploader("", type=["mp4","mov"],
+            label_visibility="collapsed", key="video_upload")
+        st.caption("*AI giữ nguyên hình ảnh, tạo Voice/Script mới*")
 
         c9, c10 = st.columns(2)
         with c9:
-            pc2 = st.selectbox("Phong cách", ["Châm biếm", "Hài hước", "Cảm xúc"], key="pv2")
+            st.selectbox("Phong cách", ["Châm biếm","Hài hước","Cảm xúc"], key="pv2")
         with c10:
-            sl2 = st.number_input("Số lượng", 1, 10, 5, key="sl2")
+            st.number_input("Số lượng", 1, 10, 5, key="sl2")
 
         c11, c12 = st.columns(2)
         with c11:
-            tl2 = st.selectbox("Tỉ lệ", ["9:16", "16:9"], key="tl2")
+            st.selectbox("Tỉ lệ", ["9:16","16:9"], key="tl2")
         with c12:
             st.text_input("Độ dài", "8 Giây", disabled=True, key="dl2")
 
         c13, c14 = st.columns(2)
         with c13:
-            gd2 = st.selectbox("Giọng đọc", ["Nam trẻ", "Nữ trẻ"], key="gd2")
+            st.selectbox("Giọng đọc", ["Nam trẻ","Nữ trẻ"], key="gd2")
         with c14:
-            nn2 = st.selectbox("Ngôn ngữ", ["Tiếng Việt", "English"], key="nn2")
+            st.selectbox("Ngôn ngữ", ["Tiếng Việt","English"], key="nn2")
 
+        st.markdown('<div class="btn-blue">', unsafe_allow_html=True)
         if st.button("🔍 Phân tích & Tạo Prompt", use_container_width=True, key="btn_phan_tich"):
             if not video_file:
                 st.warning("⚠️ Anh chưa upload video!")
             else:
-                st.info("🔄 Tính năng phân tích video đang được phát triển...")
+                st.info("🔄 Tính năng đang phát triển...")
+        st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # ── UPLOAD ẢNH SẢN PHẨM ──────────────────────────────────────────────
+    # Upload ảnh sản phẩm
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown('<div class="section-title">📸 Tải ảnh sản phẩm lên</div>', unsafe_allow_html=True)
 
     uploaded_img = st.file_uploader(
-        "Kéo thả file vào đây hoặc Click để duyệt",
-        type=["png", "jpg", "jpeg"],
-        key="img_upload"
-    )
+        "Kéo thả PNG/JPG vào đây hoặc Click để chọn",
+        type=["png","jpg","jpeg"], key="img_upload")
 
     if uploaded_img:
         img = Image.open(uploaded_img)
-        st.image(img, width=200)
-
+        st.image(img, width=180)
         st.markdown("**🤖 Chức năng AI từ ảnh:**")
         col_a, col_b = st.columns(2)
 
         with col_a:
-            if st.button("💬 Gợi ý Caption", use_container_width=True):
-                with st.spinner("Đang phân tích ảnh..."):
-                    res = call_gemini(
-                        "Nhìn vào ảnh sản phẩm mỹ phẩm này, hãy gợi ý 5 caption hấp dẫn cho TikTok/Reels bằng tiếng Việt. Mỗi caption có emoji và hashtag.",
-                        image=img
-                    )
-                    st.session_state.result = res
+            st.markdown('<div class="btn-caption">', unsafe_allow_html=True)
+            if st.button("💬 Gợi ý Caption", use_container_width=True, key="btn_caption"):
+                with st.spinner("Đang phân tích..."):
+                    st.session_state.result = call_gemini(
+                        "Gợi ý 5 caption TikTok/Reels về sản phẩm mỹ phẩm trong ảnh. Có emoji và hashtag. Tiếng Việt.", image=img)
+            st.markdown('</div>', unsafe_allow_html=True)
 
-            if st.button("📝 Tạo Script từ ảnh", use_container_width=True):
+            st.markdown('<div class="btn-script">', unsafe_allow_html=True)
+            if st.button("📝 Tạo Script từ ảnh", use_container_width=True, key="btn_script"):
                 with st.spinner("Đang tạo script..."):
-                    res = call_gemini(
-                        "Nhìn vào ảnh sản phẩm này, hãy tạo 1 script video ngắn 15 giây theo phong cách nhân hóa 3D hài hước cho TikTok. Bao gồm lời thoại và mô tả cảnh quay.",
-                        image=img
-                    )
-                    st.session_state.result = res
+                    st.session_state.result = call_gemini(
+                        "Tạo script video 15 giây nhân hóa 3D hài hước từ sản phẩm trong ảnh. Lời thoại + mô tả cảnh. Tiếng Việt.", image=img)
+            st.markdown('</div>', unsafe_allow_html=True)
 
         with col_b:
-            if st.button("🔬 Phân tích sản phẩm", use_container_width=True):
+            st.markdown('<div class="btn-analyze">', unsafe_allow_html=True)
+            if st.button("🔬 Phân tích sản phẩm", use_container_width=True, key="btn_analyze"):
                 with st.spinner("Đang phân tích..."):
-                    res = call_gemini(
-                        "Phân tích sản phẩm mỹ phẩm trong ảnh: tên sản phẩm (nếu thấy), loại sản phẩm, công dụng có thể có, đối tượng phù hợp. Trả lời ngắn gọn bằng tiếng Việt.",
-                        image=img
-                    )
-                    st.session_state.result = res
+                    st.session_state.result = call_gemini(
+                        "Phân tích sản phẩm mỹ phẩm trong ảnh: tên, loại, công dụng, đối tượng. Ngắn gọn, tiếng Việt.", image=img)
+            st.markdown('</div>', unsafe_allow_html=True)
 
-            if st.button("🎨 Tạo Prompt ảnh 3D", use_container_width=True):
-                with st.spinner("Đang tạo prompt..."):
-                    res = call_gemini(
-                        "Dựa vào ảnh sản phẩm này, hãy tạo 3 prompt chi tiết để tạo ảnh 3D animation nhân hóa sản phẩm (như Pixar/Disney style). Mỗi prompt bao gồm: mô tả nhân vật, bối cảnh, ánh sáng, chuyển động, phong cách. Bằng tiếng Anh cho Midjourney/DALL-E.",
-                        image=img
-                    )
-                    st.session_state.result = res
+            st.markdown('<div class="btn-prompt3d">', unsafe_allow_html=True)
+            if st.button("🎨 Tạo Prompt ảnh 3D", use_container_width=True, key="btn_prompt3d"):
+                with st.spinner("Đang tạo prompt 3D..."):
+                    st.session_state.result = call_gemini(
+                        "Tạo 3 prompt tiếng Anh để tạo ảnh 3D animation nhân hóa sản phẩm mỹ phẩm trong ảnh (Pixar/Disney style). Mỗi prompt: nhân vật, bối cảnh, ánh sáng, chuyển động.", image=img)
+            st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ─── CỘT PHẢI: KẾT QUẢ ───────────────────────────────────────────────────────
+# ─── KẾT QUẢ ─────────────────────────────────────────────────────────────────
 with col_right:
     st.markdown('<div class="result-box">', unsafe_allow_html=True)
     st.markdown('<div class="section-title">✨ Kết quả</div>', unsafe_allow_html=True)
@@ -389,25 +419,25 @@ with col_right:
     if st.session_state.result:
         st.markdown(st.session_state.result)
         st.divider()
-        c_copy, c_clear = st.columns(2)
-        with c_copy:
-            st.download_button(
-                "📥 Tải xuống kết quả",
-                data=st.session_state.result,
-                file_name="prompt_video.txt",
-                mime="text/plain",
-                use_container_width=True
-            )
-        with c_clear:
-            if st.button("🗑️ Xóa kết quả", use_container_width=True):
+        cd1, cd2 = st.columns(2)
+        with cd1:
+            st.markdown('<div class="btn-download">', unsafe_allow_html=True)
+            st.download_button("📥 Tải xuống", data=st.session_state.result,
+                file_name="prompt_video.txt", mime="text/plain", use_container_width=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+        with cd2:
+            st.markdown('<div class="btn-clear">', unsafe_allow_html=True)
+            if st.button("🗑️ Xóa kết quả", use_container_width=True, key="btn_clear"):
                 st.session_state.result = None
                 st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
     else:
         st.markdown("""
         <div class="result-empty">
-            <div class="icon">✨</div>
-            <p>Chưa có prompt nào.<br>Hãy nhấn <b>"Tạo Prompt"</b> hoặc<br>dùng các nút AI từ ảnh sản phẩm.</p>
-        </div>
-        """, unsafe_allow_html=True)
+            <div class="icon">✨</div><br>
+            <p><b>Chưa có kết quả nào</b><br><br>
+            Nhập chủ đề → bấm <b>🚀 Tạo Prompt Ngay</b><br>
+            hoặc upload ảnh → dùng các nút AI bên trái</p>
+        </div>""", unsafe_allow_html=True)
 
     st.markdown('</div>', unsafe_allow_html=True)
